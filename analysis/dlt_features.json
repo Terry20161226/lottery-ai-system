@@ -1,0 +1,112 @@
+{
+  "lottery_type": "dlt",
+  "analysis_date": "2026-03-06 08:12:34.038186",
+  "periods_analyzed": 100,
+  "features": {
+    "cold_hot": {
+      "hot_hit_rate": 30.67,
+      "cold_hit_rate": 30.0,
+      "hot_weight": 0.51,
+      "recommendation": "热号更有效"
+    },
+    "odd_even": {
+      "distribution": {
+        "3:2": 47.0,
+        "2:3": 31.0,
+        "4:1": 12.0,
+        "1:4": 8.0,
+        "5:0": 1.0,
+        "0:5": 1.0
+      },
+      "best_ratio": "3:2",
+      "recommendation": "推荐奇偶比 3:2"
+    },
+    "zone_distribution": {
+      "distribution": {
+        "2-1-2": 33.0,
+        "1-2-2": 24.0,
+        "2-2-1": 23.0,
+        "3-1-1": 4.0,
+        "3-2-0": 3.0,
+        "0-3-2": 3.0,
+        "2-3-0": 3.0,
+        "2-0-3": 3.0,
+        "4-1-0": 2.0,
+        "1-3-1": 1.0,
+        "0-0-5": 1.0
+      },
+      "best_zone": "2-1-2",
+      "recommendation": "推荐区间比 2-1-2"
+    },
+    "consecutive": {
+      "consecutive_rate": 22.0,
+      "recommendation": "连号可选可不选"
+    },
+    "omission": {
+      "max_omission": 9,
+      "avg_omission": 3.7,
+      "hot_numbers": [
+        2,
+        5,
+        8,
+        9,
+        11,
+        12,
+        14,
+        15,
+        16,
+        18
+      ],
+      "cold_numbers": [],
+      "recommendation": "遗漏值正常"
+    },
+    "sum_value": {
+      "avg_sum": 88.2,
+      "recent_avg": 76.8,
+      "trend": "decreasing",
+      "recommended_sum": 77,
+      "recommendation": "推荐和值范围 67~87"
+    },
+    "span": {
+      "avg_span": 25.6,
+      "max_span": 33,
+      "recommended_span": 26,
+      "recommendation": "推荐跨度范围 21~31"
+    },
+    "same_tail": {
+      "same_tail_rate": 49.0,
+      "hot_tails": [
+        3,
+        5,
+        1
+      ],
+      "recommendation": "同尾号出现率49.0%，关注尾号[3, 5, 1]"
+    },
+    "sum_range": {
+      "avg_sum": 88.2,
+      "min_sum": 45,
+      "max_sum": 143,
+      "recommended_range": "79-96"
+    },
+    "tail_numbers": {
+      "distribution": {
+        "3": 13.2,
+        "5": 11.4,
+        "1": 11.2,
+        "4": 11.0,
+        "2": 10.8,
+        "9": 9.8,
+        "8": 9.6,
+        "6": 8.4,
+        "0": 7.4,
+        "7": 7.2
+      },
+      "hot_tails": [
+        "3",
+        "5",
+        "1"
+      ],
+      "recommendation": "关注尾数 3, 5, 1"
+    }
+  }
+}

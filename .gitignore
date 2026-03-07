@@ -1,0 +1,15 @@
+# 敏感数据
+data/*.json
+reports/*.json
+logs/*.log
+
+# Python 缓存
+__pycache__/
+*.pyc
+*.pyo
+
+# 临时文件
+*.tmp
+*.bak
+fetch_state.json
+ml_model.pkl

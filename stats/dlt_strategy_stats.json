@@ -1,0 +1,42 @@
+{
+  "total_periods": 0,
+  "strategy_stats": {
+    "balanced": {
+      "hits": 0,
+      "total_prize": 0,
+      "hit_rate": 0
+    },
+    "hot_tracking": {
+      "hits": 0,
+      "total_prize": 0,
+      "hit_rate": 0
+    },
+    "cold_rebound": {
+      "hits": 0,
+      "total_prize": 0,
+      "hit_rate": 0
+    },
+    "odd_even": {
+      "hits": 0,
+      "total_prize": 0,
+      "hit_rate": 0
+    },
+    "zone_distribution": {
+      "hits": 0,
+      "total_prize": 0,
+      "hit_rate": 0
+    },
+    "consecutive": {
+      "hits": 0,
+      "total_prize": 0,
+      "hit_rate": 0
+    },
+    "warm_balance": {
+      "hits": 0,
+      "total_prize": 0,
+      "hit_rate": 0
+    }
+  },
+  "best_strategy": null,
+  "last_update": null
+}
