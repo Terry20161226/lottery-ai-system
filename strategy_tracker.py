@@ -1,243 +1,284 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-策略跟踪和评估模块
-- 保存每期 7 种策略的推荐结果
-- 开奖后计算各策略中奖情况
-- 统计中奖率和中奖金额
+彩票策略效果追踪与分析
+记录每次开奖后各策略的表现，生成统计报告
 """
 
+import os
 import json
-from pathlib import Path
 from datetime import datetime, timedelta
-from typing import Dict, List
+from pathlib import Path
+from collections import defaultdict
 
+# 配置
+LOTTERY_DIR = "/root/.openclaw/workspace/lottery"
+DATA_DIR = os.path.join(LOTTERY_DIR, "data")
+STATS_DIR = os.path.join(LOTTERY_DIR, "stats")
+FEEDBACK_DIR = os.path.join(LOTTERY_DIR, "feedback")
 
-class StrategyTracker:
-    """策略跟踪器"""
-    
-    STRATEGY_NAMES = {
-        'balanced': '均衡策略',
-        'hot_tracking': '热号追踪',
-        'cold_rebound': '冷号反弹',
-        'odd_even': '奇偶均衡',
-        'zone_distribution': '区间分布',
-        'consecutive': '连号追踪',
-        'warm_balance': '温号搭配',
+# 策略名称映射
+STRATEGY_NAMES = {
+    "hot": "热号追踪",
+    "balanced": "均衡策略",
+    "warm": "温号搭配",
+    "consecutive": "连号追踪",
+    "odd_even": "奇偶均衡",
+    "zone": "区间分布",
+    "cold": "冷号反弹"
+}
+
+def load_json_file(filepath):
+    """加载 JSON 文件"""
+    if os.path.exists(filepath):
+        with open(filepath, "r", encoding="utf-8") as f:
+            return json.load(f)
+    return None
+
+def save_json_file(filepath, data):
+    """保存 JSON 文件"""
+    os.makedirs(os.path.dirname(filepath), exist_ok=True)
+    with open(filepath, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+
+def get_strategy_stats_file(lottery_type):
+    """获取策略统计文件路径"""
+    return os.path.join(STATS_DIR, f"{lottery_type}_strategy_stats.json")
+
+def init_strategy_stats(lottery_type):
+    """初始化策略统计数据结构"""
+    return {
+        "lottery_type": lottery_type,
+        "last_update": datetime.now().isoformat(),
+        "total_draws": 0,
+        "strategies": {}
     }
+
+def record_strategy_result(lottery_type, issue, draw_date, recommendations, prize_results):
+    """记录某期开奖的策略结果"""
+    stats_file = get_strategy_stats_file(lottery_type)
     
-    def __init__(self, base_dir: str = "/root/.openclaw/workspace/lottery"):
-        self.base_dir = Path(base_dir)
-        self.data_dir = self.base_dir / "data"
-        self.stats_dir = self.base_dir / "stats"
-        
-        # 创建目录
-        for dir_path in [self.data_dir, self.stats_dir]:
-            dir_path.mkdir(parents=True, exist_ok=True)
-        
-        # 文件路径
-        self.ssq_recommend_file = self.data_dir / "ssq_recommend_all.json"
-        self.dlt_recommend_file = self.data_dir / "dlt_recommend_all.json"
-        self.ssq_stats_file = self.stats_dir / "ssq_strategy_stats.json"
-        self.dlt_stats_file = self.stats_dir / "dlt_strategy_stats.json"
-        
-        # 初始化文件
-        self._init_files()
+    # 加载或初始化统计
+    if os.path.exists(stats_file):
+        stats = load_json_file(stats_file)
+        # 确保有 strategies 键
+        if "strategies" not in stats:
+            stats["strategies"] = {}
+    else:
+        stats = init_strategy_stats(lottery_type)
     
-    def _init_files(self):
-        """初始化数据文件"""
-        for file_path in [self.ssq_recommend_file, self.dlt_recommend_file]:
-            if not file_path.exists():
-                self._save_json(file_path, {"recommendations": []})
-        
-        for file_path in [self.ssq_stats_file, self.dlt_stats_file]:
-            if not file_path.exists():
-                self._save_json(file_path, {
-                    "total_periods": 0,
-                    "strategy_stats": {k: {"hits": 0, "total_prize": 0, "hit_rate": 0} 
-                                       for k in self.STRATEGY_NAMES.keys()},
-                    "best_strategy": None,
-                    "last_update": None
-                })
+    # 更新统计时间
+    stats["last_update"] = datetime.now().isoformat()
+    stats["total_draws"] = stats.get("total_draws", 0) + 1
     
-    def _load_json(self, file_path: Path) -> Dict:
-        """加载 JSON 文件"""
-        if file_path.exists():
-            with open(file_path, 'r', encoding='utf-8') as f:
-                return json.load(f)
-        return {}
-    
-    def _save_json(self, file_path: Path, data: Dict):
-        """保存 JSON 文件"""
-        with open(file_path, 'w', encoding='utf-8') as f:
-            json.dump(data, f, ensure_ascii=False, indent=2)
-    
-    def save_recommendations(self, lottery_type: str, issue: str, 
-                            strategies_result: Dict[str, List[Dict]]):
-        """
-        保存所有策略的推荐结果
+    # 记录本期各策略表现
+    for i, rec in enumerate(recommendations):
+        strategy = rec.get("strategy", "unknown")
+        prize_result = prize_results[i] if i < len(prize_results) else {"prize_name": None, "prize_amount": 0}
         
-        Args:
-            lottery_type: 'ssq' 或 'dlt'
-            issue: 期号
-            strategies_result: {策略名：[推荐号码列表]}
-        """
-        file_path = self.ssq_recommend_file if lottery_type == 'ssq' else self.dlt_recommend_file
-        data = self._load_json(file_path)
-        
-        record = {
-            "issue": issue,
-            "created_at": datetime.now().isoformat(),
-            "strategies": {}
-        }
-        
-        for strategy_name, recommendations in strategies_result.items():
-            record["strategies"][strategy_name] = {
-                "name": self.STRATEGY_NAMES.get(strategy_name, strategy_name),
-                "recommendations": recommendations
+        if strategy not in stats["strategies"]:
+            stats["strategies"][strategy] = {
+                "name": STRATEGY_NAMES.get(strategy, strategy),
+                "total_notes": 0,
+                "win_notes": 0,
+                "total_amount": 0,
+                "win_rate": 0,
+                "roi": 0,
+                "history": []  # 历史记录
             }
         
-        if "recommendations" not in data:
-            data["recommendations"] = []
+        strat = stats["strategies"][strategy]
+        strat["total_notes"] += 1
         
-        # 插入到最前面
-        data["recommendations"].insert(0, record)
-        
-        # 只保留最近 200 期
-        data["recommendations"] = data["recommendations"][:200]
-        
-        self._save_json(file_path, data)
-    
-    def check_prize(self, lottery_type: str, issue: str, winning_numbers: Dict) -> Dict:
-        """
-        检查各策略中奖情况
-        
-        Args:
-            lottery_type: 'ssq' 或 'dlt'
-            issue: 期号
-            winning_numbers: 开奖号码 {'red': [], 'blue': []} 或 {'front': [], 'back': []}
-        
-        Returns:
-            各策略中奖统计
-        """
-        file_path = self.ssq_recommend_file if lottery_type == 'ssq' else self.dlt_recommend_file
-        data = self._load_json(file_path)
-        
-        # 查找对应期号的推荐
-        rec_record = None
-        for rec in data.get("recommendations", []):
-            if rec.get("issue") == issue:
-                rec_record = rec
-                break
-        
-        if not rec_record:
-            return {"error": f"未找到期号 {issue} 的推荐记录"}
-        
-        results = {}
-        
-        for strategy_name, strategy_data in rec_record.get("strategies", {}).items():
-            hits = {"level_1": 0, "level_2": 0, "level_3": 0, "level_4": 0, 
-                    "level_5": 0, "level_6": 0, "total_prize": 0}
+        # 如果中奖
+        if prize_result.get("prize_name"):
+            strat["win_notes"] += 1
+            strat["total_amount"] += prize_result.get("prize_amount", 0)
             
-            for rec in strategy_data.get("recommendations", []):
-                prize = self._calculate_prize(lottery_type, rec, winning_numbers)
-                if prize["level"]:
-                    hits[f"level_{prize['level']}"] += 1
-                    hits["total_prize"] += prize["amount"]
-            
-            results[strategy_name] = hits
+            # 记录中奖历史
+            strat["history"].append({
+                "issue": issue,
+                "draw_date": draw_date,
+                "prize_name": prize_result["prize_name"],
+                "prize_amount": prize_result["prize_amount"]
+            })
         
-        # 更新统计
-        self._update_stats(lottery_type, results)
+        # 更新胜率
+        strat["win_rate"] = round(strat["win_notes"] / strat["total_notes"] * 100, 2) if strat["total_notes"] > 0 else 0
         
-        return results
+        # 计算 ROI（假设每注 2 元）
+        cost = strat["total_notes"] * 2
+        strat["roi"] = round((strat["total_amount"] - cost) / cost * 100, 2) if cost > 0 else 0
     
-    def _calculate_prize(self, lottery_type: str, recommendation: Dict, 
-                        winning_numbers: Dict) -> Dict:
-        """
-        计算单注中奖金额
-        
-        Returns:
-            {'level': 1-6 或 0, 'amount': 金额}
-        """
-        if lottery_type == 'ssq':
-            red_match = len(set(recommendation.get('red', [])) & set(winning_numbers.get('red', [])))
-            blue_match = 1 if recommendation.get('blue', [])[0] in winning_numbers.get('blue', []) else 0
-            
-            # 双色球奖级
-            if red_match == 6 and blue_match == 1:
-                return {"level": 1, "amount": 5000000}  # 一等奖
-            elif red_match == 6 and blue_match == 0:
-                return {"level": 2, "amount": 100000}   # 二等奖
-            elif red_match == 5 and blue_match == 1:
-                return {"level": 3, "amount": 3000}     # 三等奖
-            elif red_match == 5 or (red_match == 4 and blue_match == 1):
-                return {"level": 4, "amount": 200}      # 四等奖
-            elif red_match == 4 or (red_match == 3 and blue_match == 1):
-                return {"level": 5, "amount": 10}       # 五等奖
-            elif blue_match == 1:
-                return {"level": 6, "amount": 5}        # 六等奖
-        
-        elif lottery_type == 'dlt':
-            front_match = len(set(recommendation.get('front', [])) & set(winning_numbers.get('front', [])))
-            back_match = len(set(recommendation.get('back', [])) & set(winning_numbers.get('back', [])))
-            
-            # 大乐透奖级（简化）
-            if front_match == 5 and back_match == 2:
-                return {"level": 1, "amount": 8000000}
-            elif front_match == 5 and back_match == 1:
-                return {"level": 2, "amount": 100000}
-            elif front_match == 5 or (front_match == 4 and back_match == 2):
-                return {"level": 3, "amount": 10000}
-            elif front_match == 4 and back_match == 1 or front_match == 3 and back_match == 2:
-                return {"level": 4, "amount": 300}
-            elif front_match == 4 or front_match == 3 and back_match == 1 or front_match == 2 and back_match == 2:
-                return {"level": 5, "amount": 15}
-            elif front_match == 3 or front_match == 1 and back_match == 2 or front_match == 2 and back_match == 1 or front_match == 0 and back_match == 2:
-                return {"level": 6, "amount": 5}
-        
-        return {"level": 0, "amount": 0}
+    # 保存统计
+    save_json_file(stats_file, stats)
+    return stats
+
+def generate_strategy_report(lottery_type, limit_draws=50):
+    """生成策略分析报告"""
+    stats_file = get_strategy_stats_file(lottery_type)
     
-    def _update_stats(self, lottery_type: str, results: Dict):
-        """更新策略统计"""
-        stats_file = self.ssq_stats_file if lottery_type == 'ssq' else self.dlt_stats_file
-        stats = self._load_json(stats_file)
-        
-        stats["total_periods"] = stats.get("total_periods", 0) + 1
-        
-        for strategy_name, hits in results.items():
-            if strategy_name not in stats["strategy_stats"]:
-                stats["strategy_stats"][strategy_name] = {"hits": 0, "total_prize": 0, "hit_rate": 0}
-            
-            total_hits = sum(hits.get(f"level_{i}", 0) for i in range(1, 7))
-            stats["strategy_stats"][strategy_name]["hits"] += total_hits
-            stats["strategy_stats"][strategy_name]["total_prize"] += hits.get("total_prize", 0)
-            stats["strategy_stats"][strategy_name]["hit_rate"] = (
-                stats["strategy_stats"][strategy_name]["hits"] / 
-                (stats["total_periods"] * 5) * 100  # 每策略 5 注
-            )
-        
-        # 找出最佳策略
-        best = max(stats["strategy_stats"].items(), 
-                   key=lambda x: x[1].get("total_prize", 0))
-        stats["best_strategy"] = {
-            "name": best[0],
-            "name_cn": self.STRATEGY_NAMES.get(best[0], best[0]),
-            "total_prize": best[1].get("total_prize", 0),
-            "hit_rate": best[1].get("hit_rate", 0)
-        }
-        
-        stats["last_update"] = datetime.now().isoformat()
-        
-        self._save_json(stats_file, stats)
+    if not os.path.exists(stats_file):
+        return f"⏳ 暂无 {lottery_type} 策略统计数据"
     
-    def get_best_strategy(self, lottery_type: str) -> Dict:
-        """获取当前最佳策略"""
-        stats_file = self.ssq_stats_file if lottery_type == 'ssq' else self.dlt_stats_file
-        stats = self._load_json(stats_file)
-        return stats.get("best_strategy", {"name": "balanced", "name_cn": "均衡策略"})
+    stats = load_json_file(stats_file)
     
-    def get_summary(self, lottery_type: str) -> Dict:
-        """获取策略汇总"""
-        stats_file = self.ssq_stats_file if lottery_type == 'ssq' else self.dlt_stats_file
-        return self._load_json(stats_file)
+    report = []
+    lottery_name = "双色球" if lottery_type == "ssq" else "大乐透"
+    
+    report.append(f"📊 {lottery_name} 策略效果分析")
+    report.append("=" * 50)
+    report.append(f"统计期数：{stats.get('total_draws', 0)} 期")
+    report.append(f"更新时间：{stats.get('last_update', '未知')[:10]}")
+    report.append("")
+    
+    # 按 ROI 排序策略
+    strategies = stats.get("strategies", {})
+    if not strategies:
+        return "📭 暂无策略数据"
+    
+    sorted_strategies = sorted(
+        strategies.items(),
+        key=lambda x: x[1].get("roi", 0),
+        reverse=True
+    )
+    
+    report.append("🏆 策略排行榜（按 ROI）")
+    report.append("-" * 50)
+    
+    for rank, (strategy_id, data) in enumerate(sorted_strategies, 1):
+        medal = "🥇" if rank == 1 else "🥈" if rank == 2 else "🥉" if rank == 3 else f"{rank}."
+        
+        report.append(f"\n{medal} {data.get('name', strategy_id)}")
+        report.append(f"   投注注数：{data.get('total_notes', 0)}")
+        report.append(f"   中奖注数：{data.get('win_notes', 0)}")
+        report.append(f"   胜率：{data.get('win_rate', 0)}%")
+        report.append(f"   总奖金：¥{data.get('total_amount', 0):,}")
+        report.append(f"   ROI：{data.get('roi', 0)}%")
+        
+        # 显示最近中奖记录
+        history = data.get("history", [])[-3:]
+        if history:
+            report.append(f"   最近中奖:")
+            for h in history:
+                report.append(f"     - {h.get('issue', '?')}期 {h.get('prize_name', '?')} ¥{h.get('prize_amount', 0):,}")
+    
+    report.append("")
+    report.append("=" * 50)
+    
+    # 推荐最佳策略
+    if sorted_strategies:
+        best = sorted_strategies[0]
+        report.append(f"\n💡 推荐策略：{best[1].get('name', '未知')}")
+        report.append(f"   理由：ROI {best[1].get('roi', 0)}%，胜率 {best[1].get('win_rate', 0)}%")
+    
+    report.append("")
+    report.append("⚠️ 历史表现不代表未来，请理性参考")
+    
+    return "\n".join(report)
+
+def get_recent_recommendations(lottery_type):
+    """获取最近推荐数据（包含策略信息）"""
+    filepath = os.path.join(DATA_DIR, f"{lottery_type}_recommend.json")
+    data = load_json_file(filepath)
+    if data and "recommendations" in data:
+        return data["recommendations"]
+    return []
+
+def main():
+    print("📊 彩票策略效果追踪")
+    print("=" * 50)
+    
+    # 获取最近推荐
+    print("📖 读取推荐数据...")
+    ssq_recs = get_recent_recommendations("ssq")
+    dlt_recs = get_recent_recommendations("dlt")
+    
+    print(f"   双色球推荐：{len(ssq_recs)} 注")
+    print(f"   大乐透推荐：{len(dlt_recs)} 注")
+    
+    # 获取开奖结果（从之前的核对结果）
+    result_file = os.path.join(FEEDBACK_DIR, "prize_check_result.json")
+    result_data = load_json_file(result_file)
+    
+    if not result_data:
+        print("⏳ 暂无核对结果，无法记录策略表现")
+        return
+    
+    # 记录双色球策略结果
+    if result_data.get("ssq", {}).get("draw"):
+        ssq_draw = result_data["ssq"]["draw"]
+        ssq_results = result_data["ssq"]["results"]
+        
+        # 构建 prize_results 格式
+        prize_results = []
+        for i in range(len(ssq_recs)):
+            matched = [r for r in ssq_results if r["note"] == i + 1]
+            if matched:
+                prize_results.append({
+                    "prize_name": matched[0]["prize_name"],
+                    "prize_amount": matched[0]["prize_amount"]
+                })
+            else:
+                prize_results.append({"prize_name": None, "prize_amount": 0})
+        
+        print("📝 记录双色球策略结果...")
+        record_strategy_result(
+            "ssq",
+            ssq_draw.get("issue", "未知"),
+            ssq_draw.get("draw_date", ""),
+            ssq_recs,
+            prize_results
+        )
+        print("   ✅ 已记录")
+    
+    # 记录大乐透策略结果
+    if result_data.get("dlt", {}).get("draw"):
+        dlt_draw = result_data["dlt"]["draw"]
+        dlt_results = result_data["dlt"]["results"]
+        
+        prize_results = []
+        for i in range(len(dlt_recs)):
+            matched = [r for r in dlt_results if r["note"] == i + 1]
+            if matched:
+                prize_results.append({
+                    "prize_name": matched[0]["prize_name"],
+                    "prize_amount": matched[0]["prize_amount"]
+                })
+            else:
+                prize_results.append({"prize_name": None, "prize_amount": 0})
+        
+        print("📝 记录大乐透策略结果...")
+        record_strategy_result(
+            "dlt",
+            dlt_draw.get("issue", "未知"),
+            dlt_draw.get("draw_date", ""),
+            dlt_recs,
+            prize_results
+        )
+        print("   ✅ 已记录")
+    
+    # 生成报告
+    print("\n" + "=" * 50)
+    print("📈 双色球策略分析")
+    print("-" * 50)
+    ssq_report = generate_strategy_report("ssq")
+    print(ssq_report)
+    
+    print("\n" + "=" * 50)
+    print("📈 大乐透策略分析")
+    print("-" * 50)
+    dlt_report = generate_strategy_report("dlt")
+    print(dlt_report)
+    
+    # 保存完整报告
+    report_file = os.path.join(STATS_DIR, "strategy_analysis_report.txt")
+    with open(report_file, "w", encoding="utf-8") as f:
+        f.write(f"生成时间：{datetime.now().isoformat()}\n\n")
+        f.write(ssq_report + "\n\n")
+        f.write(dlt_report)
+    
+    print(f"\n💾 报告已保存到：{report_file}")
+
+if __name__ == "__main__":
+    main()
