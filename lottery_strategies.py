@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-彩票推荐策略模块 - 7 种策略
+彩票推荐策略模块 - 7 种策略（支持动态权重优化）
 """
 
 import random
@@ -18,6 +18,10 @@ class LotteryStrategies:
     def get_cold_hot_numbers(self, lottery_type: str, period: int = 30) -> Dict:
         """获取冷热号"""
         return self.storage.get_cold_hot_numbers(lottery_type, period)
+    
+    def get_recent_patterns(self, lottery_type: str, periods: int = 30) -> Dict:
+        """获取近期形态特征"""
+        return self.storage.get_recent_patterns(lottery_type, periods)
     
     # ========== 双色球策略 ==========
     
@@ -316,3 +320,79 @@ class LotteryStrategies:
             }
         
         return {}
+    
+    # ========== 优化策略 ==========
+    
+    def ssq_sum_optimized(self, target_sum_range=(80, 120)) -> List[Dict]:
+        """策略 8: 和值优化 - 控制和值在目标范围"""
+        cold_hot = self.get_cold_hot_numbers('ssq', 30)
+        recommendations = []
+        
+        all_red = list(range(1, 34))
+        blue_all = list(range(1, 17))
+        
+        for _ in range(5):
+            # 尝试生成符合和值范围的号码
+            for _ in range(10):  # 最多尝试 10 次
+                red = sorted(random.sample(all_red, 6))
+                if target_sum_range[0] <= sum(red) <= target_sum_range[1]:
+                    break
+            blue = [random.choice(blue_all)]
+            recommendations.append({"red": red, "blue": blue})
+        
+        return recommendations
+    
+    def ssq_span_optimized(self, target_span_range=(20, 30)) -> List[Dict]:
+        """策略 9: 跨度优化 - 控制跨度在目标范围"""
+        cold_hot = self.get_cold_hot_numbers('ssq', 30)
+        recommendations = []
+        
+        all_red = list(range(1, 34))
+        blue_all = list(range(1, 17))
+        
+        for _ in range(5):
+            for _ in range(10):
+                red = sorted(random.sample(all_red, 6))
+                span = red[-1] - red[0]
+                if target_span_range[0] <= span <= target_span_range[1]:
+                    break
+            blue = [random.choice(blue_all)]
+            recommendations.append({"red": red, "blue": blue})
+        
+        return recommendations
+    
+    def dlt_sum_optimized(self, target_sum_range=(60, 100)) -> List[Dict]:
+        """策略 8: 和值优化（大乐透）"""
+        cold_hot = self.get_cold_hot_numbers('dlt', 30)
+        recommendations = []
+        
+        all_front = list(range(1, 36))
+        all_back = list(range(1, 13))
+        
+        for _ in range(5):
+            for _ in range(10):
+                front = sorted(random.sample(all_front, 5))
+                if target_sum_range[0] <= sum(front) <= target_sum_range[1]:
+                    break
+            back = sorted(random.sample(all_back, 2))
+            recommendations.append({"front": front, "back": back})
+        
+        return recommendations
+    
+    def dlt_span_optimized(self, target_span_range=(15, 30)) -> List[Dict]:
+        """策略 9: 跨度优化（大乐透）"""
+        recommendations = []
+        
+        all_front = list(range(1, 36))
+        all_back = list(range(1, 13))
+        
+        for _ in range(5):
+            for _ in range(10):
+                front = sorted(random.sample(all_front, 5))
+                span = front[-1] - front[0]
+                if target_span_range[0] <= span <= target_span_range[1]:
+                    break
+            back = sorted(random.sample(all_back, 2))
+            recommendations.append({"front": front, "back": back})
+        
+        return recommendations
