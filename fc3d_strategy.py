@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-快三彩票策略与中奖核对
+福彩 3D 彩票策略与中奖核对
 """
 
 import os
@@ -15,33 +15,15 @@ LOTTERY_DIR = "/root/.openclaw/workspace/lottery"
 DATA_DIR = os.path.join(LOTTERY_DIR, "data")
 STATS_DIR = os.path.join(LOTTERY_DIR, "stats")
 
-# 快三奖级规则（标准奖金）
-KS3_PRIZES = {
-    "三同号单选": {"condition": "三同号单选", "amount": 240},      # 指定豹子号，如 111
-    "三同号通选": {"condition": "三同号通选", "amount": 40},      # 所有豹子号
-    "二同号单选": {"condition": "二同号单选", "amount": 80},      # 指定对子 + 单号，如 112
-    "二同号复选": {"condition": "二同号复选", "amount": 15},      # 指定对子，第三号任意
-    "三不同号": {"condition": "三不同号", "amount": 40},          # 三个号都不同
-    "二不同号": {"condition": "二不同号", "amount": 8},           # 指定两个不同号
-    "三连号通选": {"condition": "三连号通选", "amount": 10},      # 123/234/345/456
-    "和值 4": {"condition": "和值", "value": 4, "amount": 80},
-    "和值 5": {"condition": "和值", "value": 5, "amount": 40},
-    "和值 6": {"condition": "和值", "value": 6, "amount": 25},
-    "和值 7": {"condition": "和值", "value": 7, "amount": 16},
-    "和值 8": {"condition": "和值", "value": 8, "amount": 12},
-    "和值 9": {"condition": "和值", "value": 9, "amount": 10},
-    "和值 10": {"condition": "和值", "value": 10, "amount": 9},
-    "和值 11": {"condition": "和值", "value": 11, "amount": 9},
-    "和值 12": {"condition": "和值", "value": 12, "amount": 10},
-    "和值 13": {"condition": "和值", "value": 13, "amount": 12},
-    "和值 14": {"condition": "和值", "value": 14, "amount": 16},
-    "和值 15": {"condition": "和值", "value": 15, "amount": 25},
-    "和值 16": {"condition": "和值", "value": 16, "amount": 40},
-    "和值 17": {"condition": "和值", "value": 17, "amount": 80},
+# 福彩 3D 奖级规则
+FC3D_PRIZES = {
+    "直选": {"condition": "直选", "amount": 1040},          # 号码完全匹配（顺序一致）
+    "组三": {"condition": "组三", "amount": 346},          # 两个号码相同
+    "组六": {"condition": "组六", "amount": 173},          # 三个号码都不同
 }
 
-# 快三策略名称
-KS3_STRATEGY_NAMES = {
+# 福彩 3D 策略名称
+FC3D_STRATEGY_NAMES = {
     "hot_number": "热号追踪",
     "cold_number": "冷号反弹",
     "sum_trend": "和值趋势",
