@@ -245,20 +245,27 @@ def save_ks3_recommendations(recommendations):
 
 
 def analyze_ks3_hot_cold(history, last_n=50):
-    """分析快三热号冷号"""
-    if not history or len(history) < last_n:
+    """分析快三/福彩 3D 热号冷号（0-9）"""
+    if not history or len(history) == 0:
         return {"hot": [], "cold": []}
     
-    # 统计每个号码出现次数
+    # 统计每个号码出现次数（福彩 3D 是 0-9）
     counter = Counter()
-    for record in history[:last_n]:
+    actual_count = min(len(history), last_n)
+    for record in history[:actual_count]:
         numbers = record.get("numbers", [])
         counter.update(numbers)
+    
+    if not counter:
+        return {"hot": [], "cold": []}
     
     # 排序
     sorted_nums = sorted(counter.items(), key=lambda x: x[1], reverse=True)
     hot = [num for num, count in sorted_nums[:3]]
     cold = [num for num, count in sorted_nums[-3:]]
+    
+    print(f"   统计期数：{actual_count}")
+    print(f"   号码频次：{dict(counter)}")
     
     return {"hot": hot, "cold": cold}
 
