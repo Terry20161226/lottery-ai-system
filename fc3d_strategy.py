@@ -122,6 +122,84 @@ def save_fc3d_recommendations(recommendations):
     print(f"   文件：{filepath}")
 
 
+def analyze_fc3d_omission(history, last_n=100):
+    """
+    分析福彩 3D 遗漏值（每个号码多少期未出现）
+    遗漏值 = 从最新一期开始，该号码多少期没有出现
+    """
+    if not history or len(history) == 0:
+        return {str(i): 0 for i in range(10)}
+    
+    omission = {}
+    
+    # 从最新一期开始往前统计，计算每个号码连续多少期未出现
+    for num in range(10):
+        num_str = str(num)
+        count = 0
+        for record in history[:last_n]:
+            numbers = record.get("numbers", [])
+            if num in numbers:
+                # 号码出现，停止计数
+                break
+            else:
+                # 号码未出现，计数 +1
+                count += 1
+        omission[num_str] = count
+    
+    return omission
+
+
+def analyze_fc3d_span(history, last_n=50):
+    """
+    分析和值跨度（最大值 - 最小值）
+    """
+    if not history or len(history) == 0:
+        return {"avg_span": 0, "max_span": 0, "min_span": 0, "spans": []}
+    
+    spans = []
+    for record in history[:last_n]:
+        numbers = record.get("numbers", [])
+        if len(numbers) == 3:
+            span = max(numbers) - min(numbers)
+            spans.append(span)
+    
+    if not spans:
+        return {"avg_span": 0, "max_span": 0, "min_span": 0, "spans": []}
+    
+    return {
+        "avg_span": sum(spans) / len(spans),
+        "max_span": max(spans),
+        "min_span": min(spans),
+        "spans": spans,
+        "span_counts": {i: spans.count(i) for i in range(10)}
+    }
+
+
+def analyze_fc3d_pattern_probability(history, last_n=100):
+    """
+    分析形态出现概率（豹子/组三/组六）
+    """
+    if not history or len(history) == 0:
+        return {"豹子": 0, "组三": 0, "组六": 0}
+    
+    counter = Counter()
+    for record in history[:last_n]:
+        numbers = record.get("numbers", [])
+        pattern = analyze_fc3d_pattern(numbers)
+        counter[pattern] += 1
+    
+    total = sum(counter.values())
+    if total == 0:
+        return {"豹子": 0, "组三": 0, "组六": 0}
+    
+    return {
+        "豹子": counter["豹子"] / total * 100,
+        "组三": counter["组三"] / total * 100,
+        "组六": counter["组六"] / total * 100,
+        "counts": dict(counter)
+    }
+
+
 def analyze_fc3d_hot_cold(history, last_n=50):
     """分析福彩 3D 热号冷号（0-9）"""
     if not history or len(history) == 0:
@@ -144,10 +222,10 @@ def analyze_fc3d_hot_cold(history, last_n=50):
 
 
 def main():
-    """主函数 - 生成福彩 3D 推荐"""
-    print("=" * 50)
-    print("福彩 3D 智能推荐")
-    print("=" * 50)
+    """主函数 - 生成福彩 3D 推荐（增强版）"""
+    print("=" * 60)
+    print("福彩 3D 智能推荐（增强版）")
+    print("=" * 60)
     
     # 1. 加载历史数据
     print("\n📖 加载历史数据...")
@@ -155,13 +233,36 @@ def main():
     history = history_data.get("records", [])
     print(f"   历史期数：{len(history)}")
     
-    # 2. 分析热号冷号
-    print("\n📊 分析热号冷号...")
-    analysis = analyze_fc3d_hot_cold(history)
-    print(f"   热号：{analysis.get('hot', [])}")
-    print(f"   冷号：{analysis.get('cold', [])}")
+    # 2. 热号冷号分析
+    print("\n📊 热号冷号分析...")
+    hot_cold = analyze_fc3d_hot_cold(history)
+    print(f"   🔥 热号：{hot_cold.get('hot', [])}")
+    print(f"   ❄️ 冷号：{hot_cold.get('cold', [])}")
     
-    # 3. 生成各策略推荐
+    # 3. 遗漏值分析（新增）
+    print("\n🔍 遗漏值分析...")
+    omission = analyze_fc3d_omission(history)
+    sorted_omission = sorted(omission.items(), key=lambda x: x[1], reverse=True)
+    max_omission = sorted_omission[:3]
+    min_omission = sorted_omission[-3:]
+    print(f"   ⏳ 最大遗漏：{max_omission}")
+    print(f"   ⏱️ 最小遗漏：{min_omission}")
+    
+    # 4. 和值跨度分析（新增）
+    print("\n📏 和值跨度分析...")
+    span_stats = analyze_fc3d_span(history)
+    print(f"   平均跨度：{span_stats.get('avg_span', 0):.1f}")
+    print(f"   最大跨度：{span_stats.get('max_span', 0)}")
+    print(f"   最小跨度：{span_stats.get('min_span', 0)}")
+    
+    # 5. 形态概率分析（新增）
+    print("\n🎲 形态概率分析...")
+    pattern_prob = analyze_fc3d_pattern_probability(history)
+    print(f"   豹子概率：{pattern_prob.get('豹子', 0):.1f}%")
+    print(f"   组三概率：{pattern_prob.get('组三', 0):.1f}%")
+    print(f"   组六概率：{pattern_prob.get('组六', 0):.1f}%")
+    
+    # 6. 生成各策略推荐
     print("\n💡 生成推荐号码...")
     all_recommendations = []
     
@@ -172,21 +273,42 @@ def main():
         all_recommendations.extend(recs)
         print(f"   {FC3D_STRATEGY_NAMES.get(strategy, strategy)}: {len(recs)} 注")
     
-    # 4. 保存推荐
+    # 7. 保存推荐
     print("\n💾 保存推荐...")
     save_fc3d_recommendations(all_recommendations)
     
-    # 5. 显示部分推荐
-    print("\n" + "=" * 50)
+    # 8. 显示推荐
+    print("\n" + "=" * 60)
     print("📋 推荐预览（前 5 注）")
-    print("=" * 50)
+    print("=" * 60)
     for i, rec in enumerate(all_recommendations[:5], 1):
         nums = rec.get("numbers", [])
         print(f"{i}. [{', '.join(map(str, nums))}] 和值:{rec.get('sum')} 形态:{rec.get('pattern')} 策略:{rec.get('strategy_cn')}")
     
-    print("\n" + "=" * 50)
+    # 9. 保存完整分析报告
+    report_file = "/root/.openclaw/workspace/lottery/stats/fc3d_analysis_report.txt"
+    with open(report_file, "w", encoding="utf-8") as f:
+        f.write("福彩 3D 分析报告\n")
+        f.write(f"生成时间：{datetime.now().isoformat()}\n")
+        f.write(f"历史期数：{len(history)}\n\n")
+        f.write(f"热号：{hot_cold.get('hot', [])}\n")
+        f.write(f"冷号：{hot_cold.get('cold', [])}\n\n")
+        f.write(f"遗漏值分析:\n")
+        for num, val in sorted_omission:
+            f.write(f"   号码{num}: {val}期未出现\n")
+        f.write(f"\n和值跨度:\n")
+        f.write(f"   平均：{span_stats.get('avg_span', 0):.1f}\n")
+        f.write(f"   最大：{span_stats.get('max_span', 0)}\n")
+        f.write(f"   最小：{span_stats.get('min_span', 0)}\n\n")
+        f.write(f"形态概率:\n")
+        f.write(f"   豹子：{pattern_prob.get('豹子', 0):.1f}%\n")
+        f.write(f"   组三：{pattern_prob.get('组三', 0):.1f}%\n")
+        f.write(f"   组六：{pattern_prob.get('组六', 0):.1f}%\n")
+    
+    print(f"\n📄 分析报告：{report_file}")
+    print("\n" + "=" * 60)
     print(f"✅ 生成完成，共 {len(all_recommendations)} 注推荐")
-    print("=" * 50)
+    print("=" * 60)
     
     return all_recommendations
 
