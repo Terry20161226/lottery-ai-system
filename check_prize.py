@@ -46,29 +46,11 @@ DLT_PRIZES = {
     "九等奖_4": {"match": 0, "blue": 2, "amount": 5},
 }
 
-# 快三奖级规则
-KS3_PRIZES = {
-    "三同号单选": {"amount": 240},
-    "三同号通选": {"amount": 40},
-    "二同号单选": {"amount": 80},
-    "二同号复选": {"amount": 15},
-    "三不同号": {"amount": 40},
-    "二不同号": {"amount": 8},
-    "三连号通选": {"amount": 10},
-    "和值 4": {"amount": 80},
-    "和值 5": {"amount": 40},
-    "和值 6": {"amount": 25},
-    "和值 7": {"amount": 16},
-    "和值 8": {"amount": 12},
-    "和值 9": {"amount": 10},
-    "和值 10": {"amount": 9},
-    "和值 11": {"amount": 9},
-    "和值 12": {"amount": 10},
-    "和值 13": {"amount": 12},
-    "和值 14": {"amount": 16},
-    "和值 15": {"amount": 25},
-    "和值 16": {"amount": 40},
-    "和值 17": {"amount": 80},
+# 福彩 3D 奖级规则
+FC3D_PRIZES = {
+    "直选": {"amount": 1040},
+    "组三": {"amount": 346},
+    "组六": {"amount": 173},
 }
 
 def load_json_file(filepath):
@@ -111,8 +93,8 @@ def get_latest_draw(lottery_type):
                 "front_balls": front_balls,
                 "back_balls": back_balls
             }
-    elif lottery_type == "ks3":
-        filepath = os.path.join(DATA_DIR, "ks3_history.json")
+    elif lottery_type == "fc3d":
+        filepath = os.path.join(DATA_DIR, "fc3d_history.json")
         data = load_json_file(filepath)
         if data and "records" in data and len(data["records"]) > 0:
             record = data["records"][0]
@@ -128,30 +110,33 @@ def get_latest_draw(lottery_type):
 def get_latest_recommendations(lottery_type):
     """获取最新推荐号码"""
     filepath = os.path.join(DATA_DIR, f"{lottery_type}_recommend.json")
+    
     data = load_json_file(filepath)
     if data and "recommendations" in data:
         recs = []
         for rec in data["recommendations"]:
-            numbers = rec.get("numbers", [])
-            for num in numbers:
-                if lottery_type == "ssq":
+            if lottery_type == "ssq":
+                numbers = rec.get("numbers", [])
+                for num in numbers:
                     recs.append({
                         "red_balls": num.get("red", []),
                         "blue_ball": num.get("blue", [])[0] if num.get("blue") else None
                     })
-                elif lottery_type == "dlt":
+            elif lottery_type == "dlt":
+                numbers = rec.get("numbers", [])
+                for num in numbers:
                     recs.append({
                         "front_balls": num.get("red", []),
                         "back_balls": num.get("blue", [])
                     })
-                elif lottery_type == "ks3":
-                    recs.append({
-                        "numbers": rec.get("numbers", []),
-                        "sum": rec.get("sum"),
-                        "type": rec.get("bet_type", "和值"),
-                        "pattern": rec.get("pattern")
-                    })
-        return recs[:5]  # 只取前 5 注
+            elif lottery_type == "fc3d":
+                recs.append({
+                    "numbers": rec.get("numbers", []),
+                    "sum": rec.get("sum"),
+                    "type": "直选",
+                    "pattern": rec.get("pattern")
+                })
+        return recs[:5]
     return []
 
 def calculate_ssq_prize(red_balls, blue_ball, recommendation):
@@ -200,68 +185,54 @@ def calculate_dlt_prize(front_balls, back_balls, recommendation):
     return prize_name, prize_amount
 
 
-def analyze_ks3_pattern(numbers):
-    """分析快三号码形态"""
+def analyze_fc3d_pattern(numbers):
+    """分析福彩 3D 号码形态"""
     counter = Counter(numbers)
     values = list(counter.values())
     
     if len(counter) == 1:
-        return "三同号"
+        return "豹子"
     elif len(counter) == 2:
-        if 2 in values:
-            return "二同号"
-        else:
-            return "二不同号"
+        return "组三"
     elif len(counter) == 3:
-        if max(numbers) - min(numbers) == 2:
-            return "三连号"
-        else:
-            return "三不同号"
+        return "组六"
     return "未知"
 
 
-def calculate_ks3_prize(draw_data, recommendation):
-    """计算快三中奖"""
+def calculate_fc3d_prize(draw_data, recommendation):
+    """计算福彩 3D 中奖"""
     draw_numbers = draw_data.get("numbers", [])
     draw_sum = sum(draw_numbers)
-    draw_pattern = analyze_ks3_pattern(draw_numbers)
+    draw_pattern = analyze_fc3d_pattern(draw_numbers)
     
-    bet_type = recommendation.get("type", "和值")
+    bet_type = recommendation.get("type", "直选")
     bet_numbers = recommendation.get("numbers", [])
     bet_sum = recommendation.get("sum")
     
     prize_name = None
     prize_amount = 0
     
+    # 直选：号码和顺序完全匹配
+    if bet_type == "直选":
+        if bet_numbers == draw_numbers:
+            prize_name = "直选"
+            prize_amount = 1040
+    
+    # 组选：号码匹配但顺序不限
+    elif bet_type == "组选":
+        if Counter(bet_numbers) == Counter(draw_numbers):
+            if draw_pattern == "组三":
+                prize_name = "组三"
+                prize_amount = 346
+            elif draw_pattern == "组六":
+                prize_name = "组六"
+                prize_amount = 173
+    
     # 和值投注
-    if bet_type == "和值" or bet_sum is not None:
+    elif bet_type == "和值":
         if bet_sum == draw_sum:
             prize_name = f"和值 {bet_sum}"
-            prize_amount = KS3_PRIZES.get(prize_name, {}).get("amount", 0)
-    
-    # 形态投注
-    elif bet_type == "形态":
-        bet_pattern = recommendation.get("pattern")
-        if bet_pattern and bet_pattern == draw_pattern:
-            if draw_pattern == "三同号":
-                prize_name = "三同号通选"
-                prize_amount = KS3_PRIZES.get(prize_name, {}).get("amount", 0)
-            elif draw_pattern == "三连号":
-                prize_name = "三连号通选"
-                prize_amount = KS3_PRIZES.get(prize_name, {}).get("amount", 0)
-    
-    # 号码匹配
-    elif bet_numbers:
-        if Counter(bet_numbers) == Counter(draw_numbers):
-            if len(set(bet_numbers)) == 1:
-                prize_name = "三同号单选"
-                prize_amount = 240
-            elif len(set(bet_numbers)) == 2:
-                prize_name = "二同号单选"
-                prize_amount = 80
-            else:
-                prize_name = "三不同号"
-                prize_amount = 40
+            prize_amount = 0  # 和值奖金根据具体和值而定
     
     return prize_name, prize_amount
 
@@ -300,9 +271,9 @@ def check_lottery_prize(lottery_type, draw_data, recommendations):
                 })
                 total_amount += prize_amount
     
-    elif lottery_type == "ks3":
+    elif lottery_type == "fc3d":
         for i, rec in enumerate(recommendations, 1):
-            prize_name, prize_amount = calculate_ks3_prize(draw_data, rec)
+            prize_name, prize_amount = calculate_fc3d_prize(draw_data, rec)
             if prize_name:
                 results.append({
                     "note": i,
@@ -314,7 +285,7 @@ def check_lottery_prize(lottery_type, draw_data, recommendations):
     
     return results, total_amount
 
-def format_report(ssq_results, dlt_results, ks3_results, ssq_draw, dlt_draw, ks3_draw):
+def format_report(ssq_results, dlt_results, fc3d_results, ssq_draw, dlt_draw, fc3d_draw):
     """格式化中奖报告"""
     report = []
     report.append("🎉 彩票中奖核对报告")
@@ -369,24 +340,24 @@ def format_report(ssq_results, dlt_results, ks3_results, ssq_draw, dlt_draw, ks3
     report.append("-" * 50)
     report.append("")
     
-    # 快三部分
-    report.append("🎲 快三")
-    if ks3_draw:
-        report.append(f"期号：{ks3_draw.get('issue', '未知')}")
-        nums = ks3_draw.get("numbers", [])
-        report.append(f"开奖号码：{' '.join(map(str, nums))} (和值:{ks3_draw.get('sum')})")
+    # 福彩 3D 部分
+    report.append("🎲 福彩 3D")
+    if fc3d_draw:
+        report.append(f"期号：{fc3d_draw.get('issue', '未知')}")
+        nums = fc3d_draw.get("numbers", [])
+        report.append(f"开奖号码：{' '.join(map(str, nums))} (和值:{fc3d_draw.get('sum')})")
         report.append("")
         
-        if ks3_results:
+        if fc3d_results:
             report.append("✅ 中奖详情：")
-            for r in ks3_results:
+            for r in fc3d_results:
                 report.append(f"  第{r['note']}注：{r['prize_name']} - ¥{r['prize_amount']:,}")
             report.append("")
-            report.append(f"💰 快三总奖金：¥{sum(r['prize_amount'] for r in ks3_results):,}")
+            report.append(f"💰 福彩 3D 总奖金：¥{sum(r['prize_amount'] for r in fc3d_results):,}")
         else:
             report.append("❌ 未中奖")
     else:
-        report.append("⏳ 暂无开奖数据（需导入快三历史数据）")
+        report.append("⏳ 暂无开奖数据")
     
     report.append("")
     report.append("=" * 50)
@@ -394,7 +365,7 @@ def format_report(ssq_results, dlt_results, ks3_results, ssq_draw, dlt_draw, ks3
     # 总计
     total = (sum(r['prize_amount'] for r in ssq_results) + 
              sum(r['prize_amount'] for r in dlt_results) + 
-             sum(r['prize_amount'] for r in ks3_results))
+             sum(r['prize_amount'] for r in fc3d_results))
     if total > 0:
         report.append(f"🎊 本期总奖金：¥{total:,}")
         report.append("")
@@ -415,37 +386,37 @@ def main():
     print("📖 读取开奖数据...")
     ssq_draw = get_latest_draw("ssq")
     dlt_draw = get_latest_draw("dlt")
-    ks3_draw = get_latest_draw("ks3")
+    fc3d_draw = get_latest_draw("fc3d")
     
     if ssq_draw:
         print(f"   双色球最新期：{ssq_draw.get('issue', '未知')}")
     if dlt_draw:
         print(f"   大乐透最新期：{dlt_draw.get('issue', '未知')}")
-    if ks3_draw:
-        print(f"   快三最新期：{ks3_draw.get('issue', '未知')}")
+    if fc3d_draw:
+        print(f"   福彩 3D 最新期：{fc3d_draw.get('issue', '未知')}")
     
     # 获取推荐数据
     print("📖 读取推荐数据...")
     ssq_recs = get_latest_recommendations("ssq")
     dlt_recs = get_latest_recommendations("dlt")
-    ks3_recs = get_latest_recommendations("ks3")
+    fc3d_recs = get_latest_recommendations("fc3d")
     
     print(f"   双色球推荐：{len(ssq_recs)} 注")
     print(f"   大乐透推荐：{len(dlt_recs)} 注")
-    print(f"   快三推荐：{len(ks3_recs)} 注")
+    print(f"   福彩 3D 推荐：{len(fc3d_recs)} 注")
     
     # 计算中奖
     print("🔍 计算中奖情况...")
     ssq_results, ssq_total = check_lottery_prize("ssq", ssq_draw, ssq_recs) if ssq_draw and ssq_recs else ([], 0)
     dlt_results, dlt_total = check_lottery_prize("dlt", dlt_draw, dlt_recs) if dlt_draw and dlt_recs else ([], 0)
-    ks3_results, ks3_total = check_lottery_prize("ks3", ks3_draw, ks3_recs) if ks3_draw and ks3_recs else ([], 0)
+    fc3d_results, fc3d_total = check_lottery_prize("fc3d", fc3d_draw, fc3d_recs) if fc3d_draw and fc3d_recs else ([], 0)
     
     print(f"   双色球中奖：{len(ssq_results)} 注，¥{ssq_total:,}")
     print(f"   大乐透中奖：{len(dlt_results)} 注，¥{dlt_total:,}")
-    print(f"   快三中奖：{len(ks3_results)} 注，¥{ks3_total:,}")
+    print(f"   福彩 3D 中奖：{len(fc3d_results)} 注，¥{fc3d_total:,}")
     
     # 生成报告
-    report = format_report(ssq_results, dlt_results, ks3_results, ssq_draw, dlt_draw, ks3_draw)
+    report = format_report(ssq_results, dlt_results, fc3d_results, ssq_draw, dlt_draw, fc3d_draw)
     
     # 保存结果
     result_data = {
@@ -460,12 +431,12 @@ def main():
             "results": dlt_results,
             "total": dlt_total
         },
-        "ks3": {
-            "draw": ks3_draw,
-            "results": ks3_results,
-            "total": ks3_total
+        "fc3d": {
+            "draw": fc3d_draw,
+            "results": fc3d_results,
+            "total": fc3d_total
         },
-        "grand_total": ssq_total + dlt_total + ks3_total
+        "grand_total": ssq_total + dlt_total + fc3d_total
     }
     
     result_file = os.path.join(FEEDBACK_DIR, "prize_check_result.json")

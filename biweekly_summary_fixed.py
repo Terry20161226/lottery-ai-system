@@ -25,7 +25,7 @@ STRATEGY_NAMES = {
     "warm": "温号搭配",
     "cold": "冷号反弹",
     "zone": "区间分布",
-    # 快三策略
+    # 福彩 3D 策略
     "hot_number": "热号追踪",
     "cold_number": "冷号反弹",
     "sum_trend": "和值趋势",
@@ -38,10 +38,6 @@ STATS_DIR = "/root/.openclaw/workspace/lottery/stats"
 def load_stats(lottery_type):
     """加载策略统计数据"""
     filepath = os.path.join(STATS_DIR, f"{lottery_type}_strategy_stats.json")
-    if os.path.exists(filepath):
-        with open(filepath, "r", encoding="utf-8") as f:
-            return json.load(f)
-    return None
 
 
 def format_summary(lottery_type: str, lottery_name: str, stats: dict) -> str:
@@ -118,25 +114,25 @@ def main():
     
     print("\n" + dlt_report)
     
-    # 快三
-    ks3_stats = load_stats('ks3')
-    ks3_report = format_summary('ks3', '快三', ks3_stats)
+    # 福彩 3D
+    fc3d_stats = load_stats('fc3d')
+    fc3d_report = format_summary('fc3d', '福彩 3D', fc3d_stats)
     
-    print("\n" + ks3_report)
+    print("\n" + fc3d_report)
     
     # 保存完整报告
-    report_file = os.path.join(STATS_DIR, "biweekly_summary_report.txt")
+    report_file = os.path.join(STATS_DIR, "fc3d_summary_report.txt")
     with open(report_file, "w", encoding="utf-8") as f:
         f.write(f"生成时间：{datetime.now().isoformat()}\n\n")
         f.write(ssq_report + "\n\n")
         f.write(dlt_report + "\n\n")
-        f.write(ks3_report)
+        f.write(fc3d_report)
     
     print("\n" + "=" * 50)
     print(f"💾 报告已保存到：{report_file}")
     print("=" * 50)
     
-    return ssq_report + "\n\n" + dlt_report + "\n\n" + ks3_report
+    return ssq_report + "\n\n" + dlt_report + "\n\n" + fc3d_report
 
 
 if __name__ == "__main__":

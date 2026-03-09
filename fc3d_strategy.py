@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-福彩 3D 彩票策略与中奖核对
+福彩 3D 彩票策略与推荐
 """
 
 import os
@@ -17,9 +17,9 @@ STATS_DIR = os.path.join(LOTTERY_DIR, "stats")
 
 # 福彩 3D 奖级规则
 FC3D_PRIZES = {
-    "直选": {"condition": "直选", "amount": 1040},          # 号码完全匹配（顺序一致）
-    "组三": {"condition": "组三", "amount": 346},          # 两个号码相同
-    "组六": {"condition": "组六", "amount": 173},          # 三个号码都不同
+    "直选": {"amount": 1040},
+    "组三": {"amount": 346},
+    "组六": {"amount": 173},
 }
 
 # 福彩 3D 策略名称
@@ -32,206 +32,101 @@ FC3D_STRATEGY_NAMES = {
 }
 
 
-def analyze_dice_pattern(numbers):
-    """分析快三号码形态"""
+def analyze_fc3d_pattern(numbers):
+    """分析福彩 3D 号码形态"""
     counter = Counter(numbers)
     values = list(counter.values())
     
     if len(counter) == 1:
-        return "三同号"  # 豹子号
+        return "豹子"
     elif len(counter) == 2:
-        if 2 in values:
-            return "二同号"  # 对子
-        else:
-            return "二不同号"
+        return "组三"
     elif len(counter) == 3:
-        if max(numbers) - min(numbers) == 2:
-            return "三连号"  # 连号
-        else:
-            return "三不同号"
+        return "组六"
     return "未知"
 
 
-def check_ks3_prize(bet, draw):
+def generate_fc3d_recommendation(strategy="balanced", count=5):
     """
-    核对快三中奖
-    
-    bet: 投注信息
-        {
-            "type": "和值|三同号单选|三同号通选|二同号单选|二同号复选|三不同号|二不同号|三连号通选",
-            "numbers": [1, 2, 3],  # 投注号码
-            "sum": 10,  # 和值投注时使用
-        }
-    
-    draw: 开奖信息
-        {
-            "numbers": [1, 2, 3],
-            "sum": 6,
-            "pattern": "三不同号"
-        }
-    """
-    bet_type = bet.get("type")
-    bet_numbers = bet.get("numbers", [])
-    bet_sum = bet.get("sum")
-    
-    draw_numbers = draw.get("numbers", [])
-    draw_sum = sum(draw_numbers)
-    draw_pattern = analyze_dice_pattern(draw_numbers)
-    
-    result = {"win": False, "prize_name": None, "prize_amount": 0}
-    
-    # 和值投注
-    if bet_type == "和值":
-        if bet_sum == draw_sum:
-            prize_name = f"和值 {bet_sum}"
-            prize_amount = KS3_PRIZES.get(prize_name, {}).get("amount", 0)
-            result = {"win": True, "prize_name": prize_name, "prize_amount": prize_amount}
-    
-    # 三同号单选
-    elif bet_type == "三同号单选":
-        if len(set(bet_numbers)) == 1 and bet_numbers == draw_numbers:
-            result = {"win": True, "prize_name": "三同号单选", "prize_amount": 240}
-    
-    # 三同号通选
-    elif bet_type == "三同号通选":
-        if draw_pattern == "三同号":
-            result = {"win": True, "prize_name": "三同号通选", "prize_amount": 40}
-    
-    # 二同号单选
-    elif bet_type == "二同号单选":
-        if len(bet_numbers) == 3:
-            bet_counter = Counter(bet_numbers)
-            draw_counter = Counter(draw_numbers)
-            if bet_counter == draw_counter:
-                result = {"win": True, "prize_name": "二同号单选", "prize_amount": 80}
-    
-    # 二同号复选
-    elif bet_type == "二同号复选":
-        if len(bet_numbers) == 2 and bet_numbers[0] == bet_numbers[1]:
-            pair = bet_numbers[0]
-            if Counter(draw_numbers).get(pair, 0) >= 2:
-                result = {"win": True, "prize_name": "二同号复选", "prize_amount": 15}
-    
-    # 三不同号
-    elif bet_type == "三不同号":
-        if len(set(bet_numbers)) == 3 and set(bet_numbers) == set(draw_numbers):
-            result = {"win": True, "prize_name": "三不同号", "prize_amount": 40}
-    
-    # 二不同号
-    elif bet_type == "二不同号":
-        if len(bet_numbers) == 2 and bet_numbers[0] != bet_numbers[1]:
-            if bet_numbers[0] in draw_numbers and bet_numbers[1] in draw_numbers:
-                result = {"win": True, "prize_name": "二不同号", "prize_amount": 8}
-    
-    # 三连号通选
-    elif bet_type == "三连号通选":
-        if draw_pattern == "三连号":
-            result = {"win": True, "prize_name": "三连号通选", "prize_amount": 10}
-    
-    return result
-
-
-def generate_ks3_recommendation(strategy="balanced", count=5):
-    """
-    生成快三推荐号码
-    
-    strategy: 策略类型
-        - hot_number: 热号追踪
-        - cold_number: 冷号反弹
-        - sum_trend: 和值趋势
-        - pattern_follow: 形态追踪
-        - balanced: 均衡策略
+    生成福彩 3D 推荐号码（0-9）
     """
     recommendations = []
     
     for _ in range(count):
         if strategy == "hot_number":
-            # 热号：倾向于出现频率高的号码（简化版，随机生成）
-            weights = [1.2, 1.1, 1.0, 1.0, 1.1, 1.2]  # 1 和 6 权重高
-            numbers = random.choices([1, 2, 3, 4, 5, 6], weights=weights, k=3)
+            # 热号：倾向于出现频率高的号码
+            weights = [1.0, 1.3, 1.1, 1.0, 0.8, 1.2, 1.1, 1.4, 1.3, 1.2]
+            numbers = random.choices(range(10), weights=weights, k=3)
         
         elif strategy == "cold_number":
-            # 冷号：倾向于出现频率低的号码（简化版）
-            weights = [0.9, 1.0, 1.1, 1.1, 1.0, 0.9]  # 3 和 4 权重高
-            numbers = random.choices([1, 2, 3, 4, 5, 6], weights=weights, k=3)
+            # 冷号：倾向于出现频率低的号码
+            weights = [1.2, 0.8, 1.0, 1.2, 1.4, 0.9, 1.0, 0.7, 0.8, 0.9]
+            numbers = random.choices(range(10), weights=weights, k=3)
         
         elif strategy == "sum_trend":
-            # 和值趋势：倾向于中间和值（9-12）
-            target_sum = random.randint(9, 12)
-            # 生成接近目标和值的号码
-            numbers = [random.randint(1, 6) for _ in range(2)]
-            third = max(1, min(6, target_sum - sum(numbers)))
+            # 和值趋势：倾向于中间和值（9-14）
+            target_sum = random.randint(9, 14)
+            numbers = [random.randint(0, 9) for _ in range(2)]
+            third = max(0, min(9, target_sum - sum(numbers)))
             numbers.append(third)
         
         elif strategy == "pattern_follow":
-            # 形态追踪：随机选择一种形态
-            patterns = ["三同号", "二同号", "三不同号", "三连号"]
+            # 形态追踪
+            patterns = ["豹子", "组三", "组六"]
             pattern = random.choice(patterns)
             
-            if pattern == "三同号":
-                num = random.randint(1, 6)
+            if pattern == "豹子":
+                num = random.randint(0, 9)
                 numbers = [num, num, num]
-            elif pattern == "二同号":
-                pair = random.randint(1, 6)
-                single = random.choice([i for i in range(1, 7) if i != pair])
+            elif pattern == "组三":
+                pair = random.randint(0, 9)
+                single = random.choice([i for i in range(10) if i != pair])
                 numbers = [pair, pair, single]
                 random.shuffle(numbers)
-            elif pattern == "三连号":
-                start = random.randint(1, 4)
-                numbers = [start, start + 1, start + 2]
             else:
-                numbers = random.sample(range(1, 7), 3)
+                numbers = random.sample(range(10), 3)
         
         else:  # balanced
-            # 均衡策略：完全随机
-            numbers = [random.randint(1, 6) for _ in range(3)]
+            numbers = [random.randint(0, 9) for _ in range(3)]
         
         recommendations.append({
             "numbers": numbers,
             "sum": sum(numbers),
-            "pattern": analyze_dice_pattern(numbers),
+            "pattern": analyze_fc3d_pattern(numbers),
             "strategy": strategy
         })
     
     return recommendations
 
 
-def load_ks3_history():
-    """加载快三历史数据"""
-    filepath = os.path.join(DATA_DIR, "ks3_history.json")
+def load_fc3d_history():
+    """加载福彩 3D 历史数据"""
+    filepath = os.path.join(DATA_DIR, "fc3d_history.json")
     if os.path.exists(filepath):
         with open(filepath, "r", encoding="utf-8") as f:
             return json.load(f)
     return {"records": []}
 
 
-def save_ks3_history(data):
-    """保存快三历史数据"""
-    filepath = os.path.join(DATA_DIR, "ks3_history.json")
-    os.makedirs(os.path.dirname(filepath), exist_ok=True)
-    with open(filepath, "w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
-
-
-def save_ks3_recommendations(recommendations):
-    """保存快三推荐数据"""
-    filepath = os.path.join(DATA_DIR, "ks3_recommend.json")
+def save_fc3d_recommendations(recommendations):
+    """保存福彩 3D 推荐数据"""
+    filepath = os.path.join(DATA_DIR, "fc3d_recommend.json")
     data = {
         "generated_at": datetime.now().isoformat(),
-        "lottery_type": "ks3",
+        "lottery_type": "fc3d",
         "recommendations": recommendations
     }
     os.makedirs(os.path.dirname(filepath), exist_ok=True)
     with open(filepath, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
+    print(f"   文件：{filepath}")
 
 
-def analyze_ks3_hot_cold(history, last_n=50):
-    """分析快三/福彩 3D 热号冷号（0-9）"""
+def analyze_fc3d_hot_cold(history, last_n=50):
+    """分析福彩 3D 热号冷号（0-9）"""
     if not history or len(history) == 0:
         return {"hot": [], "cold": []}
     
-    # 统计每个号码出现次数（福彩 3D 是 0-9）
     counter = Counter()
     actual_count = min(len(history), last_n)
     for record in history[:actual_count]:
@@ -241,32 +136,28 @@ def analyze_ks3_hot_cold(history, last_n=50):
     if not counter:
         return {"hot": [], "cold": []}
     
-    # 排序
     sorted_nums = sorted(counter.items(), key=lambda x: x[1], reverse=True)
     hot = [num for num, count in sorted_nums[:3]]
     cold = [num for num, count in sorted_nums[-3:]]
     
-    print(f"   统计期数：{actual_count}")
-    print(f"   号码频次：{dict(counter)}")
-    
-    return {"hot": hot, "cold": cold}
+    return {"hot": hot, "cold": cold, "stats": dict(counter)}
 
 
 def main():
-    """主函数 - 生成快三推荐"""
+    """主函数 - 生成福彩 3D 推荐"""
     print("=" * 50)
-    print("快三彩票智能推荐")
+    print("福彩 3D 智能推荐")
     print("=" * 50)
     
     # 1. 加载历史数据
     print("\n📖 加载历史数据...")
-    history_data = load_ks3_history()
+    history_data = load_fc3d_history()
     history = history_data.get("records", [])
     print(f"   历史期数：{len(history)}")
     
     # 2. 分析热号冷号
     print("\n📊 分析热号冷号...")
-    analysis = analyze_ks3_hot_cold(history)
+    analysis = analyze_fc3d_hot_cold(history)
     print(f"   热号：{analysis.get('hot', [])}")
     print(f"   冷号：{analysis.get('cold', [])}")
     
@@ -274,17 +165,16 @@ def main():
     print("\n💡 生成推荐号码...")
     all_recommendations = []
     
-    for strategy in KS3_STRATEGY_NAMES.keys():
-        recs = generate_ks3_recommendation(strategy, count=3)
+    for strategy in FC3D_STRATEGY_NAMES.keys():
+        recs = generate_fc3d_recommendation(strategy, count=3)
         for rec in recs:
-            rec["strategy_cn"] = KS3_STRATEGY_NAMES.get(strategy, strategy)
+            rec["strategy_cn"] = FC3D_STRATEGY_NAMES.get(strategy, strategy)
         all_recommendations.extend(recs)
-        print(f"   {KS3_STRATEGY_NAMES.get(strategy, strategy)}: {len(recs)} 注")
+        print(f"   {FC3D_STRATEGY_NAMES.get(strategy, strategy)}: {len(recs)} 注")
     
     # 4. 保存推荐
     print("\n💾 保存推荐...")
-    save_ks3_recommendations(all_recommendations)
-    print(f"   已保存到：{DATA_DIR}/ks3_recommend.json")
+    save_fc3d_recommendations(all_recommendations)
     
     # 5. 显示部分推荐
     print("\n" + "=" * 50)

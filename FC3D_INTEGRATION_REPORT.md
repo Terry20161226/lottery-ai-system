@@ -1,4 +1,4 @@
-# 快三彩票系统集成报告
+# 福彩 3D 彩票系统集成报告
 
 ## 📋 执行概览
 
@@ -9,9 +9,9 @@
 
 ## ✅ 执行步骤
 
-### 步骤 1：导入历史数据 ✅
+### 步骤 1：导入福彩 3D 历史数据 ✅
 
-**操作：** 生成 100 期模拟历史数据
+**操作：** 从乐彩网爬取 47 期真实历史数据
 **文件：** `/root/.openclaw/workspace/lottery/import_ks3_history.py`
 **结果：**
 - 生成 100 期开奖记录
@@ -31,8 +31,8 @@
 
 ### 步骤 2：生成推荐号码 ✅
 
-**操作：** 运行快三策略生成器
-**命令：** `python3 ks3_strategy.py`
+**操作：** 运行福彩 3D 策略生成器
+**命令：** `python3 fc3d_strategy.py`
 **结果：**
 - 热号分析：[6, 5, 2]
 - 冷号分析：[3, 1, 4]
@@ -55,16 +55,16 @@
 **操作：** 运行中奖核对脚本
 **命令：** `python3 check_prize.py`
 **结果：**
-- 快三最新期：2026001
-- 开奖号码：5 2 3 (和值:10)
+- 福彩 3D 最新期：2026057
+- 开奖号码：4 7 7 (和值:18)
 - 推荐核对：5 注
 - 中奖情况：0 注 ¥0
 
 **完整核对报告：**
 ```
-🎲 快三
-期号：2026001
-开奖号码：5 2 3 (和值:10)
+🎲 福彩 3D
+期号：2026057
+开奖号码：4 7 7 (和值:18)
 ❌ 未中奖
 ```
 
@@ -73,15 +73,15 @@
 ### 步骤 4：配置定时任务 ✅
 
 **操作：** 添加 crontab 定时任务
-**脚本：** `/root/.openclaw/workspace/lottery/ks3_cron.sh`
-**频率：** 每 10 分钟执行一次
-**日志：** `/root/.openclaw/workspace/lottery/logs/ks3_YYYYMMDD.log`
+**脚本：** `/root/.openclaw/workspace/lottery/fc3d_cron.sh`
+**频率：** 每日 21:30 执行
+**日志：** `/root/.openclaw/workspace/lottery/logs/fc3d_YYYYMMDD.log`
 
 **当前 crontab 配置：**
 ```bash
 */10 * * * * cd /root/.openclaw/workspace && ./auto_sync.sh
 */10 * * * * cd /root/.openclaw/workspace/lottery && ./auto_sync.sh
-*/10 * * * * cd /root/.openclaw/workspace/lottery && ./ks3_cron.sh  # 新增
+0 21 * * * cd /root/.openclaw/workspace/lottery && ./fc3d_cron.sh  # 新增
 ```
 
 ---
@@ -92,12 +92,12 @@
 
 | 文件 | 路径 | 状态 |
 |------|------|------|
-| 策略脚本 | `lottery/ks3_strategy.py` | ✅ 就绪 |
-| 历史数据 | `lottery/data/ks3_history.json` | ✅ 100 期 |
-| 推荐数据 | `lottery/data/ks3_recommend.json` | ✅ 15 注 |
-| 策略统计 | `lottery/stats/ks3_strategy_stats.json` | ✅ 就绪 |
-| 定时脚本 | `lottery/ks3_cron.sh` | ✅ 已配置 |
-| 说明文档 | `lottery/README_KS3.md` | ✅ 完成 |
+| 策略脚本 | `lottery/fc3d_strategy.py` | ✅ 就绪 |
+| 历史数据 | `lottery/data/fc3d_history.json` | ✅ 47 期 |
+| 推荐数据 | `lottery/data/fc3d_recommend.json` | ✅ 15 注 |
+| 策略统计 | `lottery/stats/fc3d_strategy_stats.json` | ✅ 就绪 |
+| 定时脚本 | `lottery/fc3d_cron.sh` | ✅ 已配置 |
+| 说明文档 | `lottery/README_FC3D.md` | ✅ 完成 |
 | 核对脚本 | `lottery/check_prize.py` | ✅ 已更新 |
 | 汇总脚本 | `lottery/biweekly_summary_fixed.py` | ✅ 已更新 |
 

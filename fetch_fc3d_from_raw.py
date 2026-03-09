@@ -9,7 +9,7 @@ import json
 import re
 from datetime import datetime, timedelta
 
-DATA_FILE = "/root/.openclaw/workspace/lottery/data/ks3_history.json"
+DATA_FILE = "/root/.openclaw/workspace/lottery/data/fc3d_history.json"
 
 # 从 web_fetch 获取的原始数据（乐彩网福彩 3D 历史开奖）
 RAW_DATA = """
