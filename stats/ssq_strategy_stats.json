@@ -38,15 +38,15 @@
     }
   },
   "best_strategy": null,
-  "last_update": "2026-03-09T21:00:01.896525",
+  "last_update": "2026-03-09T21:30:34.952073",
   "strategies": {
     "balanced": {
       "name": "均衡策略",
-      "total_notes": 84,
-      "win_notes": 12,
-      "total_amount": 60,
-      "win_rate": 14.29,
-      "roi": -64.29,
+      "total_notes": 92,
+      "win_notes": 13,
+      "total_amount": 70,
+      "win_rate": 14.13,
+      "roi": -61.96,
       "history": [
         {
           "issue": "2020100",
@@ -119,9 +119,15 @@
           "draw_date": "2020-09-06",
           "prize_name": "六等奖_2",
           "prize_amount": 5
+        },
+        {
+          "issue": "2020100",
+          "draw_date": "2020-09-06",
+          "prize_name": "五等奖_2",
+          "prize_amount": 10
         }
       ]
     }
   },
-  "total_draws": 12
+  "total_draws": 13
 }
