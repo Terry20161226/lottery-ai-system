@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-03-10T21:00:02.228578",
+  "timestamp": "2026-03-11T11:36:22.776612",
   "ssq": {
     "draw": {
       "issue": "2020100",
@@ -13,25 +13,8 @@
       ],
       "blue_ball": 11
     },
-    "results": [
-      {
-        "note": 1,
-        "prize_name": "五等奖_2",
-        "prize_amount": 10,
-        "recommendation": {
-          "red_balls": [
-            1,
-            4,
-            16,
-            26,
-            27,
-            29
-          ],
-          "blue_ball": 11
-        }
-      }
-    ],
-    "total": 10
+    "results": [],
+    "total": 0
   },
   "dlt": {
     "draw": {
@@ -66,5 +49,5 @@
     "results": [],
     "total": 0
   },
-  "grand_total": 10
+  "grand_total": 0
 }

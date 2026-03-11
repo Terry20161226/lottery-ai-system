@@ -38,15 +38,15 @@
     }
   },
   "best_strategy": null,
-  "last_update": "2026-03-10T21:00:02.348035",
+  "last_update": "2026-03-11T11:36:22.831484",
   "strategies": {
     "balanced": {
       "name": "均衡策略",
-      "total_notes": 108,
+      "total_notes": 110,
       "win_notes": 15,
       "total_amount": 90,
-      "win_rate": 13.89,
-      "roi": -58.33,
+      "win_rate": 13.64,
+      "roi": -59.09,
       "history": [
         {
           "issue": "2020100",
@@ -141,5 +141,5 @@
       ]
     }
   },
-  "total_draws": 15
+  "total_draws": 17
 }
