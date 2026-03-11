@@ -282,3 +282,41 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+class StrategyTracker:
+    """策略追踪器类 - 兼容旧代码的包装类"""
+    
+    def __init__(self):
+        pass
+    
+    def get_summary(self, lottery_type: str):
+        """获取策略统计摘要"""
+        stats_file = get_strategy_stats_file(lottery_type)
+        data = load_json_file(stats_file)
+        if not data:
+            data = init_strategy_stats(lottery_type)
+        return data
+    
+    def get_best_strategy(self, lottery_type: str):
+        """获取最佳策略信息（返回 dict）"""
+        stats = self.get_summary(lottery_type)
+        if stats and 'strategy_stats' in stats:
+            best_name, best_data = max(stats['strategy_stats'].items(), 
+                      key=lambda x: x[1].get('hit_rate', 0),
+                      default=('balanced', {}))
+            return {
+                'name_cn': STRATEGY_NAMES.get(best_name, best_name),
+                'total_prize': best_data.get('total_prize', 0)
+            }
+        return {'name_cn': '均衡策略', 'total_prize': 0}
+    
+    def save_recommendations(self, lottery_type: str, issue: str, recommendations: dict):
+        """保存推荐结果"""
+        filepath = os.path.join(DATA_DIR, f"{lottery_type}_recommend.json")
+        data = {
+            "issue": issue,
+            "timestamp": datetime.now().isoformat(),
+            "recommendations": recommendations
+        }
+        save_json_file(filepath, data)
