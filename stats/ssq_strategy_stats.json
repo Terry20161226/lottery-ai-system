@@ -38,108 +38,19 @@
     }
   },
   "best_strategy": null,
-  "last_update": "2026-03-11T11:36:22.831484",
+  "last_update": "2026-03-11T11:43:00.000000",
   "strategies": {
     "balanced": {
       "name": "均衡策略",
-      "total_notes": 110,
-      "win_notes": 15,
-      "total_amount": 90,
-      "win_rate": 13.64,
-      "roi": -59.09,
-      "history": [
-        {
-          "issue": "2020100",
-          "draw_date": "2020-09-06",
-          "prize_name": "六等奖_2",
-          "prize_amount": 5
-        },
-        {
-          "issue": "2020100",
-          "draw_date": "2020-09-06",
-          "prize_name": "六等奖_2",
-          "prize_amount": 5
-        },
-        {
-          "issue": "2020100",
-          "draw_date": "2020-09-06",
-          "prize_name": "六等奖_2",
-          "prize_amount": 5
-        },
-        {
-          "issue": "2020100",
-          "draw_date": "2020-09-06",
-          "prize_name": "六等奖_2",
-          "prize_amount": 5
-        },
-        {
-          "issue": "2020100",
-          "draw_date": "2020-09-06",
-          "prize_name": "六等奖_2",
-          "prize_amount": 5
-        },
-        {
-          "issue": "2020100",
-          "draw_date": "2020-09-06",
-          "prize_name": "六等奖_2",
-          "prize_amount": 5
-        },
-        {
-          "issue": "2020100",
-          "draw_date": "2020-09-06",
-          "prize_name": "六等奖_2",
-          "prize_amount": 5
-        },
-        {
-          "issue": "2020100",
-          "draw_date": "2020-09-06",
-          "prize_name": "六等奖_2",
-          "prize_amount": 5
-        },
-        {
-          "issue": "2020100",
-          "draw_date": "2020-09-06",
-          "prize_name": "六等奖_2",
-          "prize_amount": 5
-        },
-        {
-          "issue": "2020100",
-          "draw_date": "2020-09-06",
-          "prize_name": "六等奖_2",
-          "prize_amount": 5
-        },
-        {
-          "issue": "2020100",
-          "draw_date": "2020-09-06",
-          "prize_name": "六等奖_2",
-          "prize_amount": 5
-        },
-        {
-          "issue": "2020100",
-          "draw_date": "2020-09-06",
-          "prize_name": "六等奖_2",
-          "prize_amount": 5
-        },
-        {
-          "issue": "2020100",
-          "draw_date": "2020-09-06",
-          "prize_name": "五等奖_2",
-          "prize_amount": 10
-        },
-        {
-          "issue": "2020100",
-          "draw_date": "2020-09-06",
-          "prize_name": "五等奖_2",
-          "prize_amount": 10
-        },
-        {
-          "issue": "2020100",
-          "draw_date": "2020-09-06",
-          "prize_name": "五等奖_2",
-          "prize_amount": 10
-        }
-      ]
+      "total_notes": 0,
+      "win_notes": 0,
+      "total_amount": 0,
+      "win_rate": 0,
+      "roi": 0,
+      "history": []
     }
   },
-  "total_draws": 17
+  "total_draws": 0,
+  "latest_issue": "2025037",
+  "latest_draw_date": "2025-04-06"
 }
