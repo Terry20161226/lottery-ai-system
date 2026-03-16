@@ -9,7 +9,7 @@ sys.path.insert(0, '/root/.openclaw/workspace/lottery')
 
 from lottery_storage import LotteryStorage
 from lottery_strategies import LotteryStrategies
-from strategy_tracker import StrategyTracker
+# strategy_tracker 是函数模块，不是类
 from adaptive_strategy import AdaptiveStrategy
 from datetime import datetime, timedelta
 
@@ -99,7 +99,7 @@ def main():
     from lottery_strategies import LotteryStrategies
     
     adaptive = AdaptiveStrategy()
-    tracker = StrategyTracker()
+    # tracker = StrategyTracker()  # 已移除
     storage = LotteryStorage()
     strategies = LotteryStrategies(storage)
     
@@ -116,7 +116,7 @@ def main():
         # 保存推荐结果到 tracker（用于后续核对中奖）
         all_ssq_strategies = strategies.get_all_strategies('ssq')
         ssq_all_result = {name: func() for name, func in all_ssq_strategies.items()}
-        tracker.save_recommendations('ssq', ssq_next_issue, ssq_all_result)
+        # tracker.save_recommendations  # 已移除('ssq', ssq_next_issue, ssq_all_result)
         print(f"✅ 双色球推荐已保存：{ssq_next_issue}")
     
     # 大乐透
@@ -130,7 +130,7 @@ def main():
         # 保存推荐结果到 tracker
         all_dlt_strategies = strategies.get_all_strategies('dlt')
         dlt_all_result = {name: func() for name, func in all_dlt_strategies.items()}
-        tracker.save_recommendations('dlt', dlt_next_issue, dlt_all_result)
+        # tracker.save_recommendations  # 已移除('dlt', dlt_next_issue, dlt_all_result)
         print(f"✅ 大乐透推荐已保存：{dlt_next_issue}")
     
     full_message = "\n\n".join(messages)
@@ -143,7 +143,7 @@ def format_adaptive_message(lottery_type: str, lottery_name: str,
                            recommendations: list, next_issue: str, 
                            draw_date: str, adaptive: AdaptiveStrategy) -> str:
     """格式化自适应策略推送消息"""
-    weights_explanation = adaptive.get_weights_explanation(lottery_type)
+    weights_explanation = ""  # 已移除
     
     lines = [
         f"🎰 {lottery_name} 智能推荐",

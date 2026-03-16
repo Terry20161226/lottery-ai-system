@@ -9,7 +9,7 @@ sys.path.insert(0, '/root/.openclaw/workspace/lottery')
 
 from lottery_storage import LotteryStorage
 from lottery_strategies import LotteryStrategies
-from strategy_tracker import StrategyTracker
+# from strategy_tracker import StrategyTracker  # 已移除
 from datetime import datetime
 
 STRATEGY_NAMES = {

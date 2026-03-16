@@ -1,0 +1,10 @@
+{
+  "consecutive_target": 0.5,
+  "epsilon": 0.4,
+  "min_bet": 2,
+  "max_bet": 5,
+  "use_ml_weight": true,
+  "hot_weight": 0.3,
+  "cold_weight": 0.2,
+  "ml_weight": 0.5
+}

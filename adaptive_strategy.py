@@ -11,7 +11,7 @@ sys.path.insert(0, '/root/.openclaw/workspace/lottery')
 from lottery_storage import LotteryStorage
 from lottery_strategies import LotteryStrategies
 from feature_analyzer import FeatureAnalyzer
-from strategy_tracker import StrategyTracker
+# from strategy_tracker import StrategyTracker  # 已移除
 import random
 from typing import Dict, List
 
@@ -33,7 +33,7 @@ class AdaptiveStrategy:
         self.storage = LotteryStorage()
         self.strategies = LotteryStrategies(self.storage)
         self.analyzer = FeatureAnalyzer()
-        self.tracker = StrategyTracker()
+        # self.tracker = StrategyTracker()  # 已移除
     
     def get_adaptive_weights(self, lottery_type: str) -> Dict[str, float]:
         """获取自适应权重 - 多因子加权"""

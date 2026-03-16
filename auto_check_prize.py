@@ -15,7 +15,11 @@ from pathlib import Path
 sys.path.insert(0, '/root/.openclaw/workspace/lottery')
 
 from lottery_storage import LotteryStorage
-from strategy_tracker import StrategyTracker
+
+# 推荐文件路径
+DATA_DIR = Path('/root/.openclaw/workspace/lottery/data')
+SSQ_RECOMMEND_FILE = DATA_DIR / 'ssq_recommend.json'
+DLT_RECOMMEND_FILE = DATA_DIR / 'dlt_recommend.json'
 
 
 class AutoPrizeChecker:
@@ -23,12 +27,18 @@ class AutoPrizeChecker:
     
     def __init__(self):
         self.storage = LotteryStorage()
-        self.tracker = StrategyTracker()
+    
+    def _load_json(self, file_path: Path) -> dict:
+        """加载 JSON 文件"""
+        if file_path.exists():
+            with open(file_path, 'r', encoding='utf-8') as f:
+                return json.load(f)
+        return {}
     
     def _get_recommendations_by_issue(self, lottery_type: str, issue: str) -> dict:
         """按期号获取推荐"""
-        file_path = self.tracker.ssq_recommend_file if lottery_type == 'ssq' else self.tracker.dlt_recommend_file
-        data = self.tracker._load_json(file_path)
+        file_path = SSQ_RECOMMEND_FILE if lottery_type == 'ssq' else DLT_RECOMMEND_FILE
+        data = self._load_json(file_path)
         
         for rec in data.get('recommendations', []):
             if rec.get('issue') == issue:

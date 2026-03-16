@@ -178,7 +178,9 @@ class MLPredictor:
     
     def prepare_data(self, short_window=10, long_window=30):
         """准备训练数据 - 双窗口版本"""
-        history = self.storage.get_history('dlt', 500)
+        # 支持双色球和大乐透
+        lottery_type = 'ssq' if self.storage.is_ssq else 'dlt'
+        history = self.storage.get_history(lottery_type, 500)
         if not history or len(history) < long_window + 10:
             return None, None
         
