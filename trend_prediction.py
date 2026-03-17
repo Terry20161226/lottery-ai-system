@@ -25,7 +25,8 @@ def analyze_consecutive(history):
     """分析连号趋势"""
     consecutive_count = 0
     for draw in history[:20]:
-        numbers = draw.get('red', []) or draw.get('front', [])
+        nums = draw.get('numbers', {})
+        numbers = nums.get('red', []) or nums.get('front', []) or draw.get('red', []) or draw.get('front', [])
         if len(numbers) > 1:
             numbers = sorted([int(n) for n in numbers])
             for i in range(len(numbers) - 1):
@@ -47,7 +48,8 @@ def analyze_same_tail(history):
     """分析同尾号趋势"""
     same_tail_count = 0
     for draw in history[:20]:
-        numbers = draw.get('red', []) or draw.get('front', [])
+        nums = draw.get('numbers', {})
+        numbers = nums.get('red', []) or nums.get('front', []) or draw.get('red', []) or draw.get('front', [])
         if len(numbers) > 2:
             tails = [int(n) % 10 for n in numbers]
             if len(tails) != len(set(tails)):
@@ -67,7 +69,8 @@ def predict_sum_range(history):
     """预测和值范围"""
     sums = []
     for draw in history[:30]:
-        numbers = draw.get('red', []) or draw.get('front', [])
+        nums = draw.get('numbers', {})
+        numbers = nums.get('red', []) or nums.get('front', []) or draw.get('red', []) or draw.get('front', [])
         s = sum(int(n) for n in numbers)
         sums.append(s)
     
@@ -87,7 +90,8 @@ def analyze_hot_cold(history):
     """分析冷热号转换"""
     freq = Counter()
     for draw in history[:30]:
-        numbers = draw.get('red', []) or draw.get('front', [])
+        nums = draw.get('numbers', {})
+        numbers = nums.get('red', []) or nums.get('front', []) or draw.get('red', []) or draw.get('front', [])
         for n in numbers:
             freq[int(n)] += 1
     
@@ -103,7 +107,8 @@ def analyze_odd_even(history):
     """分析奇偶比"""
     odd_counts = []
     for draw in history[:30]:
-        numbers = draw.get('red', []) or draw.get('front', [])
+        nums = draw.get('numbers', {})
+        numbers = nums.get('red', []) or nums.get('front', []) or draw.get('red', []) or draw.get('front', [])
         odd = sum(1 for n in numbers if int(n) % 2 == 1)
         odd_counts.append(odd)
     

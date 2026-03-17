@@ -125,9 +125,12 @@ def get_latest_recommendations(lottery_type):
             elif lottery_type == "dlt":
                 numbers = rec.get("numbers", [])
                 for num in numbers:
+                    # 大乐透数据格式：front/back 或 red/blue 都支持
+                    front_balls = num.get("front", num.get("red", []))
+                    back_balls = num.get("back", num.get("blue", []))
                     recs.append({
-                        "front_balls": num.get("red", []),
-                        "back_balls": num.get("blue", [])
+                        "front_balls": front_balls,
+                        "back_balls": back_balls
                     })
             elif lottery_type == "fc3d":
                 recs.append({
