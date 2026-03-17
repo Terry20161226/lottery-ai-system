@@ -160,8 +160,9 @@ class FeatureEngineer:
 class MLPredictor:
     """机器学习预测器 - v4.0 自适应策略"""
     
-    def __init__(self, storage):
+    def __init__(self, storage, lottery_type='dlt'):
         self.storage = storage
+        self.lottery_type = lottery_type
         self.fe = FeatureEngineer(storage)
         self.model = None
         self.model_path = Path('/root/.openclaw/workspace/lottery/ml_model.pkl')
@@ -179,7 +180,7 @@ class MLPredictor:
     def prepare_data(self, short_window=10, long_window=30):
         """准备训练数据 - 双窗口版本"""
         # 支持双色球和大乐透
-        lottery_type = 'ssq' if self.storage.is_ssq else 'dlt'
+        lottery_type = self.lottery_type
         history = self.storage.get_history(lottery_type, 500)
         if not history or len(history) < long_window + 10:
             return None, None

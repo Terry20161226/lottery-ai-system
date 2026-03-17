@@ -1,0 +1,70 @@
+{
+  "history": [
+    10000.0,
+    9992.5,
+    9982.5
+  ],
+  "initial": 10000,
+  "current": 9982.5,
+  "created_at": "2026-03-16T12:26:44.907966",
+  "backtest": {
+    "dlt": {
+      "history": [
+        10000,
+        9995,
+        9985
+      ],
+      "bets": [
+        {
+          "issue": "2026001",
+          "date": "2026-01-01",
+          "bet": 10,
+          "prize": 5,
+          "capital": 9995,
+          "roi": -0.05
+        },
+        {
+          "issue": "2026002",
+          "date": "2026-01-04",
+          "bet": 10,
+          "prize": 0,
+          "capital": 9985,
+          "roi": -0.15
+        }
+      ],
+      "initial": 10000,
+      "final": 9985,
+      "total_bet": 20,
+      "total_prize": 5
+    },
+    "ssq": {
+      "history": [
+        10000,
+        9990,
+        9980
+      ],
+      "bets": [
+        {
+          "issue": "2025148",
+          "date": "2025-12-23",
+          "bet": 10,
+          "prize": 0,
+          "capital": 9990,
+          "roi": -0.1
+        },
+        {
+          "issue": "2025149",
+          "date": "2025-12-25",
+          "bet": 10,
+          "prize": 0,
+          "capital": 9980,
+          "roi": -0.2
+        }
+      ],
+      "initial": 10000,
+      "final": 9980,
+      "total_bet": 20,
+      "total_prize": 0
+    }
+  }
+}
